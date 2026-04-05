@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF sang Ảnh - Tung Mai</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="index.html" class="logo">Tung Mai Hub</a>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="#">Tính năng ▼</a>
+                        <div class="dropdown-content">
+                            <a href="pdf.html">PDF to IMG</a>
+                            <a href="excel.html">Excel to IMG</a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="main-content">
+            <h1>PDF sang Ảnh</h1>
+            <p class="subtitle">Chuyển đổi từng trang PDF thành hình ảnh chất lượng cao</p>
+            <div class="box" onclick="document.getElementById('f').click()">Kéo thả hoặc Click chọn PDF</div>
+            <input type="file" id="f" hidden accept="application/pdf">
+            <div id="stt" style="color: var(--primary); margin: 20px 0;"></div>
+            <button id="dl" class="btn" style="display: none;">TẢI FILE ZIP</button>
+            <div id="preview"></div>
+        </section>
+    </div>
+
+    <script>
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        document.getElementById('f').onchange = async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const preview = document.getElementById('preview');
+            const stt = document.getElementById('stt');
+            const dl = document.getElementById('dl');
+            preview.innerHTML = ''; dl.style.display = 'none';
+            const zip = new JSZip();
+            const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const vp = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                canvas.width = vp.width; canvas.height = vp.height;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                preview.appendChild(canvas);
+                zip.file(`Trang_${i}.jpg`, canvas.toDataURL('image/jpeg', 0.8).split(',')[1], {base64: true});
+                stt.innerText = `Xử lý: ${Math.round(i/pdf.numPages*100)}%`;
+            }
+            stt.innerText = "Xong!"; dl.style.display = 'block';
+            dl.onclick = async () => {
+                const b = await zip.generateAsync({type: "blob"});
+                const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "pdf_export.zip"; a.click();
+            };
+        };
+    </script>
+</body>
+</html>

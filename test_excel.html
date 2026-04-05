@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Excel Functions</title>
+</head>
+<body>
+    <h1>Testing Excel Functions</h1>
+    <div id="output"></div>
+
+    <script>
+        // Copy the functions from excel.html for testing
+        function isExcelData(text) {
+            const rows = text.split('\n');
+            console.log('Rows:', rows.length, 'Headers:', rows[0]?.split('\t').length);
+            return rows.length >= 2 && rows[0].split('\t').length > 1;
+        }
+
+        // Test cases
+        const testCases = [
+            { input: "Tên\tGiá\tDiện tích\nCăn A\t2 tỷ\t80m2", expected: true, desc: "Valid Excel data" },
+            { input: "Hello world", expected: false, desc: "Plain text" },
+            { input: "Single line", expected: false, desc: "Single line" },
+            { input: "A\tB\n1\t2\n3\t4", expected: true, desc: "Simple table" }
+        ];
+
+        const output = document.getElementById('output');
+        let passed = 0;
+        let total = testCases.length;
+
+        testCases.forEach((test, i) => {
+            const result = isExcelData(test.input);
+            const status = result === test.expected ? 'PASS' : 'FAIL';
+            if (result === test.expected) passed++;
+
+            output.innerHTML += `
+                <div style="margin: 10px; padding: 10px; border: 1px solid #ccc;">
+                    <strong>Test ${i + 1}:</strong> ${test.desc}<br>
+                    Input: "${test.input.replace(/\n/g, '\\n')}"<br>
+                    Expected: ${test.expected}, Got: ${result}<br>
+                    <span style="color: ${result === test.expected ? 'green' : 'red'}">${status}</span>
+                </div>
+            `;
+        });
+
+        output.innerHTML += `<h2>Results: ${passed}/${total} tests passed</h2>`;
+        console.log(`Test results: ${passed}/${total} passed`);
+    </script>
+</body>
+</html>
